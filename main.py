@@ -19,16 +19,16 @@ options = HandLandmarkerOptions(
 def convertToList(landmarks):
     xArr = []
     yArr = []
-    landmarks = landmarks[0]
-    for landmark in landmarks:
-        #Flips the X axis to transform graph
-        xArr.append(-landmark.x)
-        #Takes compliment of 1(Normalized amount) to make sure image has wrist at the bottom
-        yArr.append(1-landmark.y)
-        # xArr.append(landmark.x)
-        # yArr.append(landmark.y)
+    for hand in landmarks:
+        for landmark in hand:
+            #Flips the X axis to transform graph
+            xArr.append(landmark.x)
+            #Takes compliment of 1(Normalized amount) to make sure image has wrist at the bottom
+            yArr.append(1-landmark.y)
+            # xArr.append(landmark.x)
+            # yArr.append(landmark.y)
     return (xArr,yArr)
-image = mp.Image.create_from_file("2_hands.png")
+image = mp.Image.create_from_file("2HandImg.jpg")
 with HandLandmarker.create_from_options(options) as HandLandmarker:
     hands = HandLandmarker.detect(image)
     handedNess = hands.handedness
@@ -36,11 +36,12 @@ with HandLandmarker.create_from_options(options) as HandLandmarker:
     (landmarkListx, landmarkListy) = convertToList(landmarks)
     #print(landmarks)
     #print(hands)
-    print(handedNess)
+    #print(handedNess)
     # print(landmarks)
     #Gives you the image upside down
     pyplot.plot(landmarkListx,landmarkListy,'ro')
     pyplot.show()
     #print(type( hands))
     #print(lands)
+    
 
