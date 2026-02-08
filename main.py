@@ -47,19 +47,53 @@ def isFingerUp(xArr, hand, fingertip, fingermiddle):
     fingertip+=(hand*21)
     fingermiddle+=(hand*21)
     return xArr[fingertip]>xArr[fingermiddle]
-
+def getTrueIndexes(fingerList):
+    indexes = []
+    for i in len(fingerList):
+        if(fingerList[i]):
+            indexes.append(i)
+    return indexes
  
-image = mp.Image.create_from_file("VertHand.jpg")
+image = mp.Image.create_from_file("D_2_Hands.jpg")
 with HandLandmarker.create_from_options(options) as HandLandmarker:
     hands = HandLandmarker.detect(image)
     handedNess = hands.handedness
     landmarks = hands.hand_landmarks
     (landmarkListx, landmarkListy) = convertToList(landmarks)
+    fingerList = [] #Right hand and then left hand
     for i in range(len(fingertips)):
-        fingerUp = isFingerUp(landmarkListx,0,fingertips[i],fingermiddles[i])
+        fingerUp =not  isFingerUp(landmarkListx,0,fingertips[i],fingermiddles[i])
+        fingerList.append(not fingerUp)
         print("Finger number "+format(i)+": "+format(fingerUp))
-    pyplot.plot(landmarkListx,landmarkListy,'ro')
-    pyplot.show()
+    print("Left hand")
+    for i in range(len(fingertips)):
+        fingerUp =  isFingerUp(landmarkListx,1,fingertips[i],fingermiddles[i])
+        fingerList.append(not fingerUp)
+        print("Finger number "+format(i)+": "+format(fingerUp))
+    
+    print(fingerList)
+
+    if(fingerList==[True,True,True,False,True,True,True,False]):
+        print("D")
+    elif(fingerList==[False,True,False,False,False,False,False,False]):
+        print("C")
+    elif(fingerList==[True,False,False,False,False,False,False,False]):
+        print("B")
+    elif(fingerList==[True,True,False,False,False,False,False,False]):
+        print("A")
+    elif(fingerList==[True,True,True,False,False,False,False,False]):
+        print("G")
+    elif(fingerList==[True,True,True,False,True,False,False,False]):
+        print("F")
+    elif(fingerList==[True,True,True,False,True,True,False,False]):
+        print("E")
+    elif(fingerList==[True,True,True,False,True,True,True,False]):
+        print("D")
+    elif(fingerList==[True,True,True,False,True,True,True,True]):
+        print("Low C")
+    
+    # pyplot.plot(landmarkListx,landmarkListy,'ro')
+    # pyplot.show()
     #print(landmarks)
     #print(hands)
     #print(handedNess)
