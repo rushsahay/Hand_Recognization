@@ -16,6 +16,19 @@ options = HandLandmarkerOptions(
     running_mode=VisionRunningMode.IMAGE,
     num_hands=2
 )
+#Organized in order of index, middle, ring, pinkey
+fingertips = [
+    8,
+    12,
+    16,
+    20
+]
+fingermiddles = [
+    6,
+    10,
+    14,
+    18
+]
 def convertToList(landmarks):
     xArr = []
     yArr = []
@@ -28,20 +41,37 @@ def convertToList(landmarks):
             # xArr.append(landmark.x)
             # yArr.append(landmark.y)
     return (xArr,yArr)
-image = mp.Image.create_from_file("2HandImg.jpg")
+
+def isFingerUp(xArr, hand, fingertip, fingermiddle):
+    #Left hand is 0 and right hand is 1
+    fingertip+=(hand*21)
+    fingermiddle+=(hand*21)
+    return xArr[fingertip]>xArr[fingermiddle]
+
+ 
+image = mp.Image.create_from_file("VertHand.jpg")
 with HandLandmarker.create_from_options(options) as HandLandmarker:
     hands = HandLandmarker.detect(image)
     handedNess = hands.handedness
     landmarks = hands.hand_landmarks
     (landmarkListx, landmarkListy) = convertToList(landmarks)
+    for i in range(len(fingertips)):
+        fingerUp = isFingerUp(landmarkListx,0,fingertips[i],fingermiddles[i])
+        print("Finger number "+format(i)+": "+format(fingerUp))
+    pyplot.plot(landmarkListx,landmarkListy,'ro')
+    pyplot.show()
     #print(landmarks)
     #print(hands)
     #print(handedNess)
     # print(landmarks)
-    #Gives you the image upside down
-    pyplot.plot(landmarkListx,landmarkListy,'ro')
-    pyplot.show()
+    # pyplot.plot(landmarkListx,landmarkListy,'ro')
+    # pyplot.show()
+    # pyplot.plot([landmarkListx[8]],[[landmarkListy[8]]],'ro')
+    # pyplot.show()
+    # # pyplot.plot(landmarkListx,landmarkListy,'ro')
+    # # pyplot.show()
+    # pyplot.plot([landmarkListx[6]],[[landmarkListy[6]]],'ro')
+    # pyplot.show()
     #print(type( hands))
     #print(lands)
     
-
