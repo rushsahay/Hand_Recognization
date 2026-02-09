@@ -134,7 +134,27 @@ with HandLandmarker.create_from_options(options) as HandLandmarker:
                 last_note = detected_note
                 detected_note = "Low C"
                 file="20239__mtg__sax-alto-single-notes/358377__mtg__sax-alto-c3.wav"
-
+            elif(stable==(False,False,False,False,False,False,False,False)):
+                last_note=detected_note
+                detected_note="C#"
+                file="20239__mtg__sax-alto-single-notes/358389__mtg__sax-alto-c4.wav"
+            elif(stable==(True,True,True,False,True,True,True,True)):
+                last_note=detected_note
+                detected_note="D#"
+                file="20239__mtg__sax-alto-single-notes/358379__mtg__sax-alto-d3.wav"
+            elif(stable==(True,True,True,False,False,True,False,False)):
+                last_note=detected_note
+                detected_note="F#"
+                file="20239__mtg__sax-alto-single-notes/358382__mtg__sax-alto-f3.wav"
+            elif(stable==(True,True,True,True,False,False,False,False)):
+                last_note=detected_note
+                detected_note="G#"
+                file="20239__mtg__sax-alto-single-notes/358384__mtg__sax-alto-g3.wav"
+            elif(stable==(True,False,False,False,True,False,False,False) or stable==(True,False,False,False,False,True,False,False) or stable==(True,False,False,False,True,True,True,False) or stable==(True,False,False,False,True,True,True,False)):
+                last_note=detected_note
+                detected_note="A#"
+                file="20239__mtg__sax-alto-single-notes/358386__mtg__sax-alto-a3.wav"
+            
             if detected_note != last_note:
                 sound.PlaySound(sound=file,flags=sound.SND_ASYNC|sound.SND_FILENAME)
             cv2.putText(
