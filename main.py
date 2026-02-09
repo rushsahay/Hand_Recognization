@@ -1,7 +1,12 @@
 import mediapipe as mp
+import cv2 
+import time
 import matplotlib.pyplot as pyplot
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
+from collections import deque
+import winsound as sound
+
 
 model_path = 'C:\\Projects\\Hand-Detection\\hand_landmarker.task'
 
@@ -13,7 +18,7 @@ VisionRunningMode = mp.tasks.vision.RunningMode
 
 options = HandLandmarkerOptions(
     base_options=BaseOptions(model_asset_path=model_path),
-    running_mode=VisionRunningMode.IMAGE,
+    running_mode=VisionRunningMode.VIDEO,
     num_hands=2
 )
 #Organized in order of index, middle, ring, pinkey
@@ -54,43 +59,101 @@ def getTrueIndexes(fingerList):
             indexes.append(i)
     return indexes
  
-image = mp.Image.create_from_file("D_2_Hands.jpg")
+cap = cv2.VideoCapture(0)
+# image = mp.Image.create_from_file("D_2_Hands.jpg")
+detected_note = "NA"
+history = deque(maxlen=3)
+last_note = "NA"
+file = ""
 with HandLandmarker.create_from_options(options) as HandLandmarker:
-    hands = HandLandmarker.detect(image)
-    handedNess = hands.handedness
-    landmarks = hands.hand_landmarks
-    (landmarkListx, landmarkListy) = convertToList(landmarks)
-    fingerList = [] #Right hand and then left hand
-    for i in range(len(fingertips)):
-        fingerUp =not  isFingerUp(landmarkListx,0,fingertips[i],fingermiddles[i])
-        fingerList.append(not fingerUp)
-        print("Finger number "+format(i)+": "+format(fingerUp))
-    print("Left hand")
-    for i in range(len(fingertips)):
-        fingerUp =  isFingerUp(landmarkListx,1,fingertips[i],fingermiddles[i])
-        fingerList.append(not fingerUp)
-        print("Finger number "+format(i)+": "+format(fingerUp))
-    
-    print(fingerList)
+    while cap.isOpened():
+        
+        ret, frame = cap.read()
+        if not ret:
+            break
 
-    if(fingerList==[True,True,True,False,True,True,True,False]):
-        print("D")
-    elif(fingerList==[False,True,False,False,False,False,False,False]):
-        print("C")
-    elif(fingerList==[True,False,False,False,False,False,False,False]):
-        print("B")
-    elif(fingerList==[True,True,False,False,False,False,False,False]):
-        print("A")
-    elif(fingerList==[True,True,True,False,False,False,False,False]):
-        print("G")
-    elif(fingerList==[True,True,True,False,True,False,False,False]):
-        print("F")
-    elif(fingerList==[True,True,True,False,True,True,False,False]):
-        print("E")
-    elif(fingerList==[True,True,True,False,True,True,True,False]):
-        print("D")
-    elif(fingerList==[True,True,True,False,True,True,True,True]):
-        print("Low C")
+        frame=cv2.flip(frame,1)
+
+        frameRGB = cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
+
+        image = mp.Image(image_format=mp.ImageFormat.SRGB,
+                         data=frameRGB)
+        timestampms = int(time.time()*1000)
+        hands = HandLandmarker.detect_for_video(image,timestampms)
+        if(len(hands.hand_landmarks)>1):
+            #print("Running")
+            handedNess = hands.handedness
+            landmarks = hands.hand_landmarks
+            (landmarkListx, landmarkListy) = convertToList(landmarks)
+            fingerList = [] #Right hand and then left hand
+            for i in range(len(fingertips)):
+                fingerUp =not  isFingerUp(landmarkListx,1,fingertips[i],fingermiddles[i])
+                fingerList.append(fingerUp)
+                print("Finger number "+format(i)+": "+format(fingerUp))
+            print("Left hand")
+            for i in range(len(fingertips)):
+                fingerUp =  isFingerUp(landmarkListx,0,fingertips[i],fingermiddles[i])
+                fingerList.append(fingerUp)
+                print("Finger number "+format(i)+": "+format(fingerUp))
+            
+
+            history.append(tuple(fingerList))
+            stable = max(set(history),key=history.count)
+
+            print(stable)
+            if(stable==(True,True,True,False,True,True,True,False)):
+                last_note = detected_note
+                detected_note = "D"
+                file="20239__mtg__sax-alto-single-notes/358378__mtg__sax-alto-d3.wav"
+                
+            elif(stable==(False,True,False,False,False,False,False,False)):
+                last_note = detected_note
+                detected_note = "C"
+                file="20239__mtg__sax-alto-single-notes/358388__mtg__sax-alto-c4.wav"
+            elif(stable==(True,False,False,False,False,False,False,False)):
+                last_note = detected_note
+                detected_note = "B"
+                file="20239__mtg__sax-alto-single-notes/358387__mtg__sax-alto-b3.wav"
+            elif(stable==(True,True,False,False,False,False,False,False)):
+                last_note = detected_note
+                detected_note = "A"
+                file="20239__mtg__sax-alto-single-notes/358385__mtg__sax-alto-a3.wav"
+            elif(stable==(True,True,True,False,False,False,False,False)):
+                last_note = detected_note
+                detected_note = "G"
+                file="20239__mtg__sax-alto-single-notes/358383__mtg__sax-alto-g3.wav"
+            elif(stable==(True,True,True,False,True,False,False,False)):
+                last_note = detected_note
+                detected_note = "F"
+                file="20239__mtg__sax-alto-single-notes/358381__mtg__sax-alto-f3.wav"
+            elif(stable==(True,True,True,False,True,True,False,False)):
+                last_note = detected_note
+                detected_note = "E"
+                file="20239__mtg__sax-alto-single-notes/358380__mtg__sax-alto-e3.wav"
+            elif(stable==(True,True,True,False,True,True,True,True)):
+                last_note = detected_note
+                detected_note = "Low C"
+                file="20239__mtg__sax-alto-single-notes/358377__mtg__sax-alto-c3.wav"
+
+            if detected_note != last_note:
+                sound.PlaySound(sound=file,flags=sound.SND_ASYNC|sound.SND_FILENAME)
+            cv2.putText(
+            frame,
+            detected_note,
+            (50, 100),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            2,
+            (0, 255, 0),
+            3
+            )
+        cv2.imshow("Saxophone_Project",frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+    cap.release()
+    cv2.destroyAllWindows()
+
+
+
     
     # pyplot.plot(landmarkListx,landmarkListy,'ro')
     # pyplot.show()
